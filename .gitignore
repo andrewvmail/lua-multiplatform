@@ -2,3 +2,5 @@
 *.a
 lua
 luac
+main.lua.bytecode
+main.h
