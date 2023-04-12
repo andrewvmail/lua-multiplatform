@@ -1,5 +1,5 @@
-#ifndef LUAMODULES
-#define LUAMODULES
+#ifndef MODULES
+#define MODULES 
 
 #include "lua.h"
 #include "lauxlib.h"

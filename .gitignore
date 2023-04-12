@@ -1,6 +1,8 @@
 *.o
 *.a
-lua
-luac
 main.lua.bytecode
 main.h
+tmp/
+zig-cache
+zig-out
+build/

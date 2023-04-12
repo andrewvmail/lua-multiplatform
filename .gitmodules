@@ -1,6 +1,12 @@
-[submodule "lua_modules/curl"]
-	path = lua_modules/curl
+[submodule "modules/libcurl-android"]
+	path = modules/libcurl-android
+	url = https://github.com/andrewvmail/libcurl-android
+[submodule "modules/Build-OpenSSL-cURL"]
+	path = modules/Build-OpenSSL-cURL
+	url = https://github.com/jasonacox/Build-OpenSSL-cURL.git
+[submodule "modules/lua"]
+	path = modules/lua
+	url = https://github.com/lua/lua.git
+[submodule "modules/Lua-cURLv3"]
+	path = modules/Lua-cURLv3
 	url = https://github.com/Lua-cURL/Lua-cURLv3.git
-[submodule "c/libcurl"]
-	path = c/libcurl
-	url = https://github.com/curl/curl.git
