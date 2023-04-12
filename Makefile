@@ -13,6 +13,8 @@ ANDROID_RANLIB=${TOOLCHAIN}/bin/llvm-ranlib
 ANDROID_CURL_INCLUDE=$(shell pwd)/modules/libcurl-android/jni/curl/include
 
 IOS_SDK_PATH=$(shell xcrun --sdk iphoneos --show-sdk-path)
+IOS_INC=$(IOS_SDK_PATH)/usr/include
+IOS_CURL_INC=$(shell pwd)/modules/Build-OpenSSL-cURL/curl/include
 
 
 LUA_INC=$(shell pwd)/modules/lua
@@ -36,7 +38,7 @@ lua-ios: build-dir
 
 lua-android: build-dir
 	@echo make lua-android
-	@cp -r modules/lua.makefile modules/lua/makefile
+	@cp -r modules/lua.android.makefile modules/lua/makefile
 	@cd modules/lua && make clean && TARGET=$(ANDROID_TARGET) CC=$(ANDROID_CC) AR=$(ANDROID_AR) RANLIB=$(ANDROID_RANLIB) make liblua.a -I$(ANDROID_CURL_INCLUDE)
 	@cp -r modules/lua/liblua.a build/arm64-v8a
 	@cd modules/lua && make clean && TARGET=$(ARM_ANDROID_TARGET) CC=$(ANDROID_CC) AR=$(ANDROID_AR) RANLIB=$(ANDROID_RANLIB) make liblua.a -I$(ANDROID_CURL_INCLUDE)
@@ -45,16 +47,32 @@ lua-android: build-dir
 
 lcurl-android: build-dir
 	@echo make lcurl.a
+	@cp -r modules/Lua-cURLv3.android.makefile modules/Lua-cURLv3/Makefile
 	@cd modules/Lua-cURLv3 && make clean && make lcurl.a AR=$(ANDROID_AR) CC=$(ANDROID_CC) TARGET=$(ANDROID_TARGET) RANLIB=$(ANDROID_RANLIB)
 	@cp -r modules/Lua-cURLv3/lcurl.a build/arm64-v8a
 	@cd modules/Lua-cURLv3 && make clean && make lcurl.a AR=$(ANDROID_AR) CC=$(ANDROID_CC) TARGET=$(ARM_ANDROID_TARGET) RANLIB=$(ANDROID_RANLIB)
 	@cp -r modules/Lua-cURLv3/lcurl.a build/armeabi-v7a
+	@cd modules/Lua-cURLv3 && git restore Makefile
 
 libstart-android: build-dir
-	@rm libstart.a && zig build-lib start.zig -I$(MODULES_INC) -I$(LUA_INC) --sysroot $(ANDROID_SYSROOT) -I$(ANDROID_INCLUDE) -I$(ANDROID_INCLUDE)/aarch64-linux-android -target aarch64-linux-android 
+	@zig build-lib start.zig -I$(MODULES_INC) -I$(LUA_INC) --sysroot $(ANDROID_SYSROOT) -I$(ANDROID_INCLUDE) -I$(ANDROID_INCLUDE)/aarch64-linux-android -target aarch64-linux-android 
 	@cp -r libstart.a build/arm64-v8a
-	@rm libstart.a && zig build-lib start.zig -I$(MODULES_INC) -I$(LUA_INC) --sysroot $(ANDROID_SYSROOT) -I$(ANDROID_INCLUDE) -I$(ANDROID_INCLUDE)/arm-linux-androideabi -target arm-linux-android
+	@zig build-lib start.zig -I$(MODULES_INC) -I$(LUA_INC) --sysroot $(ANDROID_SYSROOT) -I$(ANDROID_INCLUDE) -I$(ANDROID_INCLUDE)/arm-linux-androideabi -target arm-linux-android
 	@cp -r libstart.a build/armeabi-v7a
+
+
+libstart-ios: build-dir
+	@zig build-lib start.zig -I$(MODULES_INC) -I$(LUA_INC) --sysroot $(IOS_SDK_PATH) -I$(IOS_INC) -target aarch64-ios
+	@cp -r libstart.a build/aarch64-ios
+	@zig build-lib start.zig -I$(MODULES_INC) -I$(LUA_INC) --sysroot $(IOS_SDK_PATH) -I$(IOS_INC) -target aarch64-ios-simulator
+	@cp -r libstart.a build/aarch64-ios-simulator
+
+lcurl-ios: build-dir
+	@echo make lcurl.a
+	@cd modules/Lua-cURLv3 && make clean && make lcurl.a CC="xcrun --sdk iphoneos clang -isysroot $$(xcrun --sdk iphoneos --show-sdk-path) -I$(MODULES_INC) -I$(LUA_INC) -I$(IOS_CURL_INC)"
+	@cp -r modules/Lua-cURLv3/lcurl.a build/aarch64-ios
+	@cd modules/Lua-cURLv3 && make clean && make lcurl.a CC="xcrun --sdk iphonesimulator clang -isysroot $$(xcrun --sdk iphonesimulator --show-sdk-path) -I$(MODULES_INC) -I$(LUA_INC) -I$(IOS_CURL_INC)"
+	@cp -r modules/Lua-cURLv3/lcurl.a build/aarch64-ios-simulator
 
 deps:
 	@submodule update --init --recursive

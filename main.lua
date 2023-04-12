@@ -1,11 +1,9 @@
-print "Hello World! from xcode"
+print "[ main.lua ] start"
 
-print('hi')
 
 local curl = require "lcurl"
 
-
-print(curl)
+print("[ main.lua ] after require curl")
 
 curl.easy{
     url = 'http://httpbin.org/get',
@@ -13,7 +11,10 @@ curl.easy{
       "X-Test-Header1: Header-Data1",
       "X-Test-Header2: Header-Data2",
     },
-    writefunction = io.stderr -- use io.stderr:write()
+    writefunction = print -- use io.stderr:write()
   }
   :perform()
 :close()
+
+
+print "[ main.lua ] end"
