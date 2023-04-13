@@ -79,6 +79,9 @@ deps:
 	@cd modules/Build-OpenSSL-cURL && ./build.sh
 	@cd modules/libcurl-android && ./build_for_android.sh
 
+curl-cacert:
+	@wget https://curl.se/ca/cacert.pem -O modules/cacert.pem
+
 build-dir:
 	@mkdir -p build/aarch64-macos 
 	@mkdir -p build/aarch64-ios

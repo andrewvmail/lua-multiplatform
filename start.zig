@@ -42,7 +42,16 @@ pub export fn run_android(s: *c.lua_State) void {
     load_main(s);
 }
 
-pub export fn run_ios() void {
+pub export fn run_ios(b: [*c]const u8) void {
+    const b_ptr: [*:0]const u8 = b;
+
+    std.log.info("{s}", .{b_ptr});
+
     var s = c.luaL_newstate().?;
+
+    // set global
+    _ = c.lua_pushstring(s, b);
+    _ = c.lua_setglobal(s, "BUNDLE_PATH");
+
     load_main(s);
 }

@@ -10,3 +10,9 @@
 [submodule "modules/Lua-cURLv3"]
 	path = modules/Lua-cURLv3
 	url = https://github.com/Lua-cURL/Lua-cURLv3.git
+[submodule "modules/sqlcipher"]
+	path = modules/sqlcipher
+	url = https://github.com/sqlcipher/sqlcipher.git
+[submodule "modules/sqlite"]
+	path = modules/sqlite
+	url = https://github.com/sqlite/sqlite.git
