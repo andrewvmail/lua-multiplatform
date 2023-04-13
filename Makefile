@@ -13,6 +13,7 @@ ANDROID_RANLIB=${TOOLCHAIN}/bin/llvm-ranlib
 ANDROID_CURL_INCLUDE=$(shell pwd)/modules/libcurl-android/jni/curl/include
 
 IOS_SDK_PATH=$(shell xcrun --sdk iphoneos --show-sdk-path)
+IOS_SDK_SIM_PATH=$(shell xcrun --sdk iphonesimulator --show-sdk-path)
 IOS_INC=$(IOS_SDK_PATH)/usr/include
 IOS_CURL_INC=$(shell pwd)/modules/Build-OpenSSL-cURL/curl/include
 
@@ -80,6 +81,12 @@ libsqlite3-ios: build-dir
 	@cd modules/sqlite && zig cc -target aarch64-ios-simulator --sysroot $(IOS_SDK_PATH) -I$(IOS_INC) -O2 -Wall -Wextra -c -o libsqlite3.a sqlite3.c
 	@cp -r modules/sqlite/libsqlite3.a build/aarch64-ios-simulator
 
+libsqlcipher-ios: build-dir
+	@cd modules/sqlcipher && xcrun --sdk iphoneos clang -isysroot $(IOS_SDK_PATH) -I$(IOS_INC) -O2 -Wall -Wextra -DSQLITE_HAS_CODEC -DSQLITE_TEMP_STORE=2 -DSQLITE_SOUNDEX -DSQLITE_THREADSAFE -DSQLITE_ENABLE_RTREE -DSQLITE_ENABLE_STAT3 -DSQLITE_ENABLE_STAT4 -DSQLITE_ENABLE_COLUMN_METADATA -DSQLITE_ENABLE_MEMORY_MANAGEMENT -DSQLITE_ENABLE_LOAD_EXTENSION -DSQLITE_ENABLE_FTS4 -DSQLITE_ENABLE_FTS4_UNICODE61 -DSQLITE_ENABLE_FTS3_PARENTHESIS -DSQLITE_ENABLE_UNLOCK_NOTIFY -DSQLITE_ENABLE_JSON1 -DSQLITE_ENABLE_FTS5 -DSQLCIPHER_CRYPTO_CC -DHAVE_USLEEP=1 -DSQLITE_MAX_VARIABLE_NUMBER=99999 -I$(MODULES_INC) -I/opt/homebrew/opt/openssl@3/include -c -o libsqlcipher.a sqlite3.c
+	@cp -r modules/sqlcipher/libsqlcipher.a build/aarch64-ios
+	@cd modules/sqlcipher && xcrun --sdk iphonesimulator clang -isysroot $(IOS_SDK_SIM_PATH) -I$(IOS_INC) -O2 -Wall -DSQLITE_HAS_CODEC -DSQLITE_TEMP_STORE=2 -DSQLITE_SOUNDEX -DSQLITE_THREADSAFE -DSQLITE_ENABLE_RTREE -DSQLITE_ENABLE_STAT3 -DSQLITE_ENABLE_STAT4 -DSQLITE_ENABLE_COLUMN_METADATA -DSQLITE_ENABLE_MEMORY_MANAGEMENT -DSQLITE_ENABLE_LOAD_EXTENSION -DSQLITE_ENABLE_FTS4 -DSQLITE_ENABLE_FTS4_UNICODE61 -DSQLITE_ENABLE_FTS3_PARENTHESIS -DSQLITE_ENABLE_UNLOCK_NOTIFY -DSQLITE_ENABLE_JSON1 -DSQLITE_ENABLE_FTS5 -DSQLCIPHER_CRYPTO_CC -DHAVE_USLEEP=1 -DSQLITE_MAX_VARIABLE_NUMBER=99999 -I$(MODULES_INC) -I/opt/homebrew/opt/openssl@3/include -Wextra -c -o libsqlcipher.a sqlite3.c
+	@cp -r modules/sqlcipher/libsqlcipher.a build/aarch64-ios-simulator
+
 lsqlite3-ios: build-dir
 	@cd modules/lsqlite3_fsl09y && zig cc -target aarch64-ios --sysroot $(IOS_SDK_PATH) -I$(LUA_INC) -I$(IOS_INC) -O2 -Wall -Wextra -c -o lsqlite3.a lsqlite3.c
 	@cp -r modules/lsqlite3_fsl09y/lsqlite3.a build/aarch64-ios
@@ -91,6 +98,7 @@ deps:
 	@cd modules/Build-OpenSSL-cURL && ./build.sh
 	@cd modules/libcurl-android && ./build_for_android.sh
 	@cd modules/sqlite && ./configure && make sqlite3.c
+	@cd modules/sqlcipher && LDFLAGS="-L/opt/homebrew/opt/openssl@3/lib" CPPFLAGS="-I/opt/homebrew/opt/openssl@3/include" ./configure  && make sqlite3.c -f Makefile.linux-gcc
 
 curl-cacert:
 	@wget https://curl.se/ca/cacert.pem -O modules/cacert.pem

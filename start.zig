@@ -44,16 +44,19 @@ pub export fn run_android(s: *c.lua_State) void {
     load_main(s);
 }
 
-pub export fn run_ios(b: [*c]const u8) void {
+pub export fn run_ios(b: [*c]const u8, r: [*c]const u8) void {
     const b_ptr: [*:0]const u8 = b;
-
+    const r_ptr: [*:0]const u8 = r;
     std.log.info("{s}", .{b_ptr});
+    std.log.info("{s}", .{r_ptr});
 
     var s = c.luaL_newstate().?;
 
     // set global
     _ = c.lua_pushstring(s, b);
     _ = c.lua_setglobal(s, "BUNDLE_PATH");
+    _ = c.lua_pushstring(s, r);
+    _ = c.lua_setglobal(s, "RESOURCE_PATH");
 
     load_main(s);
 }
