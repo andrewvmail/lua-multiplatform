@@ -19,6 +19,8 @@ fn load_main(s: *c.lua_State) void {
     c.lua_pop(s, 1);
     c.luaL_requiref(s, "lcurl", c.luaopen_lcurl_safe, 1);
     c.lua_pop(s, 1);
+    c.luaL_requiref(s, "lsqlite3", c.luaopen_lsqlite3, 1);
+    c.lua_pop(s, 1);
 
     const load_status = c.luaL_loadbufferx(s, LUA_BYTECODE, LUA_BYTECODE.len, "main.lua", "bt");
     if (load_status != 0) {

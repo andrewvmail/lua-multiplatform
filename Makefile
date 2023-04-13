@@ -74,10 +74,23 @@ lcurl-ios: build-dir
 	@cd modules/Lua-cURLv3 && make clean && make lcurl.a CC="xcrun --sdk iphonesimulator clang -isysroot $$(xcrun --sdk iphonesimulator --show-sdk-path) -I$(MODULES_INC) -I$(LUA_INC) -I$(IOS_CURL_INC)"
 	@cp -r modules/Lua-cURLv3/lcurl.a build/aarch64-ios-simulator
 
+libsqlite3-ios: build-dir
+	@cd modules/sqlite && zig cc -target aarch64-ios --sysroot $(IOS_SDK_PATH) -I$(IOS_INC) -O2 -Wall -Wextra -c -o libsqlite3.a sqlite3.c
+	@cp -r modules/sqlite/libsqlite3.a build/aarch64-ios
+	@cd modules/sqlite && zig cc -target aarch64-ios-simulator --sysroot $(IOS_SDK_PATH) -I$(IOS_INC) -O2 -Wall -Wextra -c -o libsqlite3.a sqlite3.c
+	@cp -r modules/sqlite/libsqlite3.a build/aarch64-ios-simulator
+
+lsqlite3-ios: build-dir
+	@cd modules/lsqlite3_fsl09y && zig cc -target aarch64-ios --sysroot $(IOS_SDK_PATH) -I$(LUA_INC) -I$(IOS_INC) -O2 -Wall -Wextra -c -o lsqlite3.a lsqlite3.c
+	@cp -r modules/lsqlite3_fsl09y/lsqlite3.a build/aarch64-ios
+	@cd modules/lsqlite3_fsl09y && zig cc -target aarch64-ios-simulator --sysroot $(IOS_SDK_PATH) -I$(LUA_INC) -I$(IOS_INC) -O2 -Wall -Wextra -c -o lsqlite3.a lsqlite3.c
+	@cp -r modules/lsqlite3_fsl09y/lsqlite3.a build/aarch64-ios-simulator
+
 deps:
 	@submodule update --init --recursive
 	@cd modules/Build-OpenSSL-cURL && ./build.sh
 	@cd modules/libcurl-android && ./build_for_android.sh
+	@cd modules/sqlite && ./configure && make sqlite3.c
 
 curl-cacert:
 	@wget https://curl.se/ca/cacert.pem -O modules/cacert.pem
