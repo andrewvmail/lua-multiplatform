@@ -44,9 +44,9 @@ lua-ios: build-dir
 	@gsed -i 's#^  stat = system(cmd);#//stat = system(cmd);#g' modules/lua/loslib.c
 	@gsed -i 's#-march=native##g' modules/lua/makefile
 	@cd modules/lua && make clean && make liblua.a CC="$(IOS_CC)"
-	@cp -r modules/lua/liblua.a build/aarch64-ios-simulator
-	@cd modules/lua && make clean && make liblua.a CC="$(IOS_SIM_CC)"
 	@cp -r modules/lua/liblua.a build/aarch64-ios
+	@cd modules/lua && make clean && make liblua.a CC="$(IOS_SIM_CC)"
+	@cp -r modules/lua/liblua.a build/aarch64-ios-simulator
 	@cd modules/lua && git restore loslib.c && git restore makefile
 
 lua-android: build-dir
@@ -85,9 +85,9 @@ sqlite-android: build-dir
 
 sqlcipher-ios: build-dir
 	@cd modules/sqlcipher && $(IOS_CC) $(SQLCIPHER_CFLAGS) $(SQLCIPHER_CFLAGS_IOS_ONLY) -I$(IOS_SSL_INC) -c sqlite3.c -o sqlcipher.a
-	@cp -r modules/sqlcipher/libsqlcipher.a build/aarch64-ios
+	@cp -r modules/sqlcipher/sqlcipher.a build/aarch64-ios
 	@cd modules/sqlcipher && $(IOS_SIM_CC) $(SQLCIPHER_CFLAGS) $(SQLCIPHER_CFLAGS_IOS_ONLY) -I$(IOS_SSL_INC) -c sqlite3.c -o sqlcipher.a
-	@cp -r modules/sqlcipher/libsqlcipher.a build/aarch64-ios-simulator
+	@cp -r modules/sqlcipher/sqlcipher.a build/aarch64-ios-simulator
 
 lsqlite3-ios: build-dir
 	@cd modules/lsqlite3_fsl09y && zig cc -target aarch64-ios --sysroot $(IOS_SDK_PATH) -I$(LUA_INC) -I$(IOS_INC) -O2 -Wall -Wextra -c -o lsqlite3.a lsqlite3.c
@@ -125,6 +125,15 @@ deps:
 	@cd modules/libcurl-android && ./build_for_android.sh
 	@cd modules/sqlite && ./configure && make sqlite3.c
 	@cd modules/sqlcipher && LDFLAGS="-L/opt/homebrew/opt/openssl@3/lib" CPPFLAGS="-I/opt/homebrew/opt/openssl@3/include" ./configure  && make sqlite3.c -f Makefile.linux-gcc
+
+xcf:
+	@cd build/aarch64-ios && libtool -static -o liblm.a lcurl.a liblua.a libstart.a lsqlite3.a sqlcipher.a
+	@cd build/aarch64-ios-simulator && libtool -static -o liblm.a lcurl.a liblua.a libstart.a lsqlite3.a sqlcipher.a
+	@cd build && mkdir liblm.xcframework && cd liblm.xcframework && mkdir aarch64-ios aarch64-ios-simulator
+	@cp modules/Info.plist build/liblm.xcframework
+	@cp build/aarch64-ios/liblm.a build/liblm.xcframework/aarch64-ios
+	@cp build/aarch64-ios-simulator/liblm.a build/liblm.xcframework/aarch64-ios-simulator
+
 
 curl-cacert:
 	@wget https://curl.se/ca/cacert.pem -O modules/cacert.pem
