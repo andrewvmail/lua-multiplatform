@@ -44,14 +44,12 @@ pub export fn run_android(s: *c.lua_State) void {
     load_main(s);
 }
 
-pub export fn run_ios(user_data_path: [*c]const u8, app_resource_path: [*c]const u8) void {
+pub export fn run_ios(s: *c.lua_State, user_data_path: [*c]const u8, app_resource_path: [*c]const u8) void {
     const user_data_path_ptr: [*:0]const u8 = user_data_path;
     const app_resource_path_ptr: [*:0]const u8 = app_resource_path;
 
     std.log.info("{s}", .{user_data_path_ptr});
     std.log.info("{s}", .{app_resource_path_ptr});
-
-    var s = c.luaL_newstate().?;
 
     // set global
     _ = c.lua_pushstring(s, user_data_path);
