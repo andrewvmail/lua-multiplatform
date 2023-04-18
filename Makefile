@@ -8,10 +8,10 @@ ANDROID_TARGET_ARM=armv7a-linux-androideabi
 ANDROID_API?=28
 
 
-ANDROID_CC_AARCH64=${TOOLCHAIN}/bin/${ANDROID_TARGET_AARCH64}${ANDROID_API}-clang
-ANDROID_CC_ARM=${TOOLCHAIN}/bin/${ANDROID_TARGET_ARM}${ANDROID_API}-clang
-ANDROID_AR="${TOOLCHAIN}/bin/llvm-ar rcs"
-ANDROID_RANLIB=${TOOLCHAIN}/bin/llvm-ranlib
+ANDROID_CC_AARCH64=${ANDROID_TOOLCHAIN}/bin/${ANDROID_TARGET_AARCH64}${ANDROID_API}-clang
+ANDROID_CC_ARM=${ANDROID_TOOLCHAIN}/bin/${ANDROID_TARGET_ARM}${ANDROID_API}-clang
+ANDROID_AR=${ANDROID_TOOLCHAIN}/bin/llvm-ar
+ANDROID_RANLIB=${ANDROID_TOOLCHAIN}/bin/llvm-ranlib
 ANDROID_CURL_INCLUDE=$(shell pwd)/modules/libcurl-android/jni/curl/include
 ANDROID_OPENSSL_INCLUDE=$(shell pwd)/modules/libcurl-android/jni/openssl/include
 
@@ -38,8 +38,13 @@ LUA_INC=$(shell pwd)/modules/lua
 MODULES_INC=$(shell pwd)/modules
 TEST=xcrun 
 
-.PHONY: lua-ios lua-android lcurl-ios lcurl-android sqlite-ios sqlite-android sqlcipher-ios lsqlite3-ios lsqlite3-android sqlcipher-android libstart-ios libstart-android deps curl-cacert build-dir info
- 
+.PHONY: lua-ios lua-android lcurl-ios lcurl-android sqlite-ios sqlite-android sqlcipher-ios lsqlite3-ios lsqlite3-android sqlcipher-android libstart-ios libstart-android deps curl-cacert build-dir info nacl-android nacl-ios
+
+
+all-ios: lua-ios lcurl-ios sqlite-ios sqlcipher-ios lsqlite3-ios libstart-ios nacl-ios
+all-android: lua-android lcurl-android sqlite-android sqlcipher-android lsqlite3-android libstart-android nacl-android
+
+
 lua-ios: build-dir
 	@gsed -i 's#^  stat = system(cmd);#//stat = system(cmd);#g' modules/lua/loslib.c
 	@gsed -i 's#-march=native##g' modules/lua/makefile
@@ -51,9 +56,9 @@ lua-ios: build-dir
 
 lua-android: build-dir
 	@cp -r modules/lua.android.makefile modules/lua/makefile
-	@cd modules/lua && make clean && TARGET=$(ANDROID_TARGET_AARCH64) CC=$(ANDROID_CC_AARCH64) AR=$(ANDROID_AR) RANLIB=$(ANDROID_RANLIB) make liblua.a
+	@cd modules/lua && make clean && TARGET=$(ANDROID_TARGET_AARCH64) CC=$(ANDROID_CC_AARCH64) AR="$(ANDROID_AR) rcs" RANLIB=$(ANDROID_RANLIB) make liblua.a
 	@cp -r modules/lua/liblua.a build/arm64-v8a
-	@cd modules/lua && make clean && TARGET=$(ANDROID_TARGET_ARM) CC=$(ANDROID_CC_ARM) AR=$(ANDROID_AR) RANLIB=$(ANDROID_RANLIB) make liblua.a
+	@cd modules/lua && make clean && TARGET=$(ANDROID_TARGET_ARM) CC=$(ANDROID_CC_ARM) AR="$(ANDROID_AR) rcs" RANLIB=$(ANDROID_RANLIB) make liblua.a
 	@cp -r modules/lua/liblua.a build/armeabi-v7a
 	@cd modules/lua && git restore makefile
 
@@ -65,9 +70,9 @@ lcurl-ios: build-dir
 
 lcurl-android: build-dir
 	@cp -r modules/Lua-cURLv3.android.makefile modules/Lua-cURLv3/Makefile
-	@cd modules/Lua-cURLv3 && make clean && make lcurl.a CC=$(ANDROID_CC_AARCH64) AR=$(ANDROID_AR) TARGET=$(ANDROID_TARGET_AARCH64) RANLIB=$(ANDROID_RANLIB)
+	@cd modules/Lua-cURLv3 && make clean && make lcurl.a CC=$(ANDROID_CC_AARCH64) AR="$(ANDROID_AR) rcs" TARGET=$(ANDROID_TARGET_AARCH64) RANLIB=$(ANDROID_RANLIB)
 	@cp -r modules/Lua-cURLv3/lcurl.a build/arm64-v8a
-	@cd modules/Lua-cURLv3 && make clean && make lcurl.a CC=$(ANDROID_CC_ARM) AR=$(ANDROID_AR) TARGET=$(ANDROID_TARGET_ARM) RANLIB=$(ANDROID_RANLIB)
+	@cd modules/Lua-cURLv3 && make clean && make lcurl.a CC=$(ANDROID_CC_ARM) AR="$(ANDROID_AR) rcs" TARGET=$(ANDROID_TARGET_ARM) RANLIB=$(ANDROID_RANLIB)
 	@cp -r modules/Lua-cURLv3/lcurl.a build/armeabi-v7a
 	@cd modules/Lua-cURLv3 && git restore Makefile
 
@@ -107,6 +112,59 @@ sqlcipher-android: build-dir
 	@cd modules/sqlcipher && $(ANDROID_CC_ARM) --sysroot $(ANDROID_SYSROOT) -g -O2 $(SQLCIPHER_CFLAGS) -fPIC -I$(LUA_INC) -I$(ANDROID_INCLUDE) -I$(ANDROID_OPENSSL_INCLUDE) -c sqlite3.c -o sqlcipher.a 
 	@cp -r modules/sqlcipher/sqlcipher.a build/armeabi-v7a
 
+cjson-ios:
+	@cd modules/lua-cjson && zig cc -target aarch64-ios --sysroot $(IOS_SDK_PATH) -I$(LUA_INC) -I$(IOS_INC) -O2 -Wall -Wextra -c -o strbuf.a strbuf.c
+	@cd modules/lua-cjson && zig cc -target aarch64-ios --sysroot $(IOS_SDK_PATH) -I$(LUA_INC) -I$(IOS_INC) -O2 -Wall -Wextra -c -o lua_cjson.a lua_cjson.c
+	@cd modules/lua-cjson && zig cc -target aarch64-ios --sysroot $(IOS_SDK_PATH) -I$(LUA_INC) -I$(IOS_INC) -O2 -Wall -Wextra -c -o fpconv.a fpconv.c
+	@cd modules/lua-cjson && libtool -static -o lcjson.a strbuf.a lua_cjson.a fpconv.a
+	@cp -r modules/lua-cjson/lcjson.a build/aarch64-ios
+	@cd modules/lua-cjson && zig cc -target aarch64-ios-simulator --sysroot $(IOS_SIM_SDK_PATH) -I$(LUA_INC) -I$(IOS_INC) -O2 -Wall -Wextra -c -o strbuf.a strbuf.c
+	@cd modules/lua-cjson && zig cc -target aarch64-ios-simulator --sysroot $(IOS_SIM_SDK_PATH) -I$(LUA_INC) -I$(IOS_INC) -O2 -Wall -Wextra -c -o lua_cjson.a lua_cjson.c
+	@cd modules/lua-cjson && zig cc -target aarch64-ios-simulator --sysroot $(IOS_SIM_SDK_PATH) -I$(LUA_INC) -I$(IOS_INC) -O2 -Wall -Wextra -c -o fpconv.a fpconv.c
+	@cd modules/lua-cjson && libtool -static -o lcjson.a strbuf.a lua_cjson.a fpconv.a
+	@cp -r modules/lua-cjson/lcjson.a build/aarch64-ios-simulator
+	
+
+cjson-android:
+	@cd modules/lua-cjson && make clean
+	@cd modules/lua-cjson && $(ANDROID_CC_AARCH64) --sysroot $(ANDROID_SYSROOT) -g -O2 -fPIC -I$(LUA_INC) -I$(ANDROID_INCLUDE) -c strbuf.c -o strbuf.a
+	@cd modules/lua-cjson && $(ANDROID_CC_AARCH64) --sysroot $(ANDROID_SYSROOT) -g -O2 -fPIC -I$(LUA_INC) -I$(ANDROID_INCLUDE) -c lua_cjson.c -o lua_cjson.a
+	@cd modules/lua-cjson && $(ANDROID_CC_AARCH64) --sysroot $(ANDROID_SYSROOT) -g -O2 -fPIC -I$(LUA_INC) -I$(ANDROID_INCLUDE) -c fpconv.c -o fpconv.a
+	@cd modules/lua-cjson && $(ANDROID_AR) r lcjson.a *.a
+	@cp -r modules/lua-cjson/lcjson.a build/arm64-v8a
+	@cd modules/lua-cjson && make clean
+	@cd modules/lua-cjson && $(ANDROID_CC_ARM) --sysroot $(ANDROID_SYSROOT) -g -O2 -fPIC -I$(LUA_INC) -I$(ANDROID_INCLUDE) -c strbuf.c -o strbuf.a
+	@cd modules/lua-cjson && $(ANDROID_CC_ARM) --sysroot $(ANDROID_SYSROOT) -g -O2 -fPIC -I$(LUA_INC) -I$(ANDROID_INCLUDE) -c lua_cjson.c -o lua_cjson.a
+	@cd modules/lua-cjson && $(ANDROID_CC_AARCH64) --sysroot $(ANDROID_SYSROOT) -g -O2 -fPIC -I$(LUA_INC) -I$(ANDROID_INCLUDE) -c fpconv.c -o fpconv.a
+	@cd modules/lua-cjson && $(ANDROID_AR) r lcjson.a *.a
+	@cp -r modules/lua-cjson/lcjson.a build/armeabi-v7a
+
+nacl-ios:
+	@cd modules/luatweetnacl && zig cc -target aarch64-ios --sysroot $(IOS_SDK_PATH) -I$(LUA_INC) -I$(IOS_INC) -O2 -Wall -Wextra -c -o randombytes.a randombytes.c
+	@cd modules/luatweetnacl && zig cc -target aarch64-ios --sysroot $(IOS_SDK_PATH) -I$(LUA_INC) -I$(IOS_INC) -O2 -Wall -Wextra -c -o tweetnacl.a tweetnacl.c
+	@cd modules/luatweetnacl && zig cc -target aarch64-ios --sysroot $(IOS_SDK_PATH) -I$(LUA_INC) -I$(IOS_INC) -O2 -Wall -Wextra -c -o luatweetnacl.a luatweetnacl.c
+	@cd modules/luatweetnacl && libtool -static -o lnacl.a randombytes.a tweetnacl.a luatweetnacl.a
+	@cp -r modules/luatweetnacl/lnacl.a build/aarch64-ios
+	@cd modules/luatweetnacl && zig cc -target aarch64-ios-simulator --sysroot $(IOS_SIM_SDK_PATH) -I$(LUA_INC) -I$(IOS_INC) -O2 -Wall -Wextra -c -o randombytes.a randombytes.c
+	@cd modules/luatweetnacl && zig cc -target aarch64-ios-simulator --sysroot $(IOS_SIM_SDK_PATH) -I$(LUA_INC) -I$(IOS_INC) -O2 -Wall -Wextra -c -o tweetnacl.a tweetnacl.c
+	@cd modules/luatweetnacl && zig cc -target aarch64-ios-simulator --sysroot $(IOS_SIM_SDK_PATH) -I$(LUA_INC) -I$(IOS_INC) -O2 -Wall -Wextra -c -o luatweetnacl.a luatweetnacl.c
+	@cd modules/luatweetnacl && libtool -static -o lnacl.a randombytes.a tweetnacl.a luatweetnacl.a
+	@cp -r modules/luatweetnacl/lnacl.a build/aarch64-ios-simulator
+	
+nacl-android:
+	@cd modules/luatweetnacl && make clean
+	@cd modules/luatweetnacl && $(ANDROID_CC_AARCH64) --sysroot $(ANDROID_SYSROOT) -g -O2 -fPIC -I$(LUA_INC) -I$(ANDROID_INCLUDE) -c tweetnacl.c -o tweetnacl.a
+	@cd modules/luatweetnacl && $(ANDROID_CC_AARCH64) --sysroot $(ANDROID_SYSROOT) -g -O2 -fPIC -I$(LUA_INC) -I$(ANDROID_INCLUDE) -c randombytes.c -o randombytes.a
+	@cd modules/luatweetnacl && $(ANDROID_CC_AARCH64) --sysroot $(ANDROID_SYSROOT) -g -O2 -fPIC -I$(LUA_INC) -I$(ANDROID_INCLUDE) -c luatweetnacl.c -o luatweetnacl.a
+	@cd modules/luatweetnacl && $(ANDROID_AR) r lnacl.a *.a
+	@cp -r modules/luatweetnacl/lnacl.a build/arm64-v8a
+	@cd modules/luatweetnacl && make clean
+	@cd modules/luatweetnacl && $(ANDROID_CC_ARM) --sysroot $(ANDROID_SYSROOT) -g -O2 -fPIC -I$(LUA_INC) -I$(ANDROID_INCLUDE) -c randombytes.c -o randombytes.a
+	@cd modules/luatweetnacl && $(ANDROID_CC_ARM) --sysroot $(ANDROID_SYSROOT) -g -O2 -fPIC -I$(LUA_INC) -I$(ANDROID_INCLUDE) -c tweetnacl.c -o tweetnacl.a
+	@cd modules/luatweetnacl && $(ANDROID_CC_ARM) --sysroot $(ANDROID_SYSROOT) -g -O2 -fPIC -I$(LUA_INC) -I$(ANDROID_INCLUDE) -c luatweetnacl.c -o luatweetnacl.a
+	@cd modules/luatweetnacl && $(ANDROID_AR) r lnacl.a *.a
+	@cp -r modules/luatweetnacl/lnacl.a build/armeabi-v7a
+
 libstart-ios: build-dir
 	@zig build-lib start.zig -I$(MODULES_INC) -I$(LUA_INC) --sysroot $(IOS_SDK_PATH) -I$(IOS_INC) -target aarch64-ios
 	@cp -r libstart.a build/aarch64-ios
@@ -127,8 +185,8 @@ deps:
 	@cd modules/sqlcipher && LDFLAGS="-L/opt/homebrew/opt/openssl@3/lib" CPPFLAGS="-I/opt/homebrew/opt/openssl@3/include" ./configure  && make sqlite3.c -f Makefile.linux-gcc
 
 xcf:
-	@cd build/aarch64-ios && libtool -static -o liblm.a lcurl.a liblua.a libstart.a lsqlite3.a sqlcipher.a
-	@cd build/aarch64-ios-simulator && libtool -static -o liblm.a lcurl.a liblua.a libstart.a lsqlite3.a sqlcipher.a
+	@cd build/aarch64-ios && libtool -static -o liblm.a lcurl.a liblua.a libstart.a lsqlite3.a sqlcipher.a lcjson.a lnacl.a
+	@cd build/aarch64-ios-simulator && libtool -static -o liblm.a lcurl.a liblua.a libstart.a lsqlite3.a sqlcipher.a lcjson.a lnacl.a
 	@cd build && mkdir liblm.xcframework && cd liblm.xcframework && mkdir aarch64-ios aarch64-ios-simulator
 	@cp modules/Info.plist build/liblm.xcframework
 	@cp build/aarch64-ios/liblm.a build/liblm.xcframework/aarch64-ios

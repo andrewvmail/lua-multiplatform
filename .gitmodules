@@ -16,3 +16,9 @@
 [submodule "modules/sqlite"]
 	path = modules/sqlite
 	url = https://github.com/sqlite/sqlite.git
+[submodule "modules/lua-cjson"]
+	path = modules/lua-cjson
+	url = https://github.com/mpx/lua-cjson.git
+[submodule "modules/luatweetnacl"]
+	path = modules/luatweetnacl
+	url = https://github.com/philanc/luatweetnacl
