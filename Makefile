@@ -191,6 +191,8 @@ xcf:
 	@cp modules/Info.plist build/liblm.xcframework
 	@cp build/aarch64-ios/liblm.a build/liblm.xcframework/aarch64-ios
 	@cp build/aarch64-ios-simulator/liblm.a build/liblm.xcframework/aarch64-ios-simulator
+	@cp modules/lua/*.h build/liblm.xcframework/aarch64-ios-simulator/Headers
+	@cp modules/lua/*.h build/liblm.xcframework/aarch64-ios/Headers
 
 
 curl-cacert:
