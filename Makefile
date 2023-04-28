@@ -126,17 +126,17 @@ cjson-ios:
 	
 
 cjson-android:
-	@cd modules/lua-cjson && make clean
-	@cd modules/lua-cjson && $(ANDROID_CC_AARCH64) --sysroot $(ANDROID_SYSROOT) -g -O2 -fPIC -I$(LUA_INC) -I$(ANDROID_INCLUDE) -c strbuf.c -o strbuf.a
-	@cd modules/lua-cjson && $(ANDROID_CC_AARCH64) --sysroot $(ANDROID_SYSROOT) -g -O2 -fPIC -I$(LUA_INC) -I$(ANDROID_INCLUDE) -c lua_cjson.c -o lua_cjson.a
-	@cd modules/lua-cjson && $(ANDROID_CC_AARCH64) --sysroot $(ANDROID_SYSROOT) -g -O2 -fPIC -I$(LUA_INC) -I$(ANDROID_INCLUDE) -c fpconv.c -o fpconv.a
-	@cd modules/lua-cjson && $(ANDROID_AR) r lcjson.a *.a
+	@cd modules/lua-cjson && make clean && rm -rf lcjson.a
+	@cd modules/lua-cjson && $(ANDROID_CC_AARCH64) --sysroot $(ANDROID_SYSROOT) -g -O2 -fPIC -I$(LUA_INC) -I$(ANDROID_INCLUDE) -c strbuf.c
+	@cd modules/lua-cjson && $(ANDROID_CC_AARCH64) --sysroot $(ANDROID_SYSROOT) -g -O2 -fPIC -I$(LUA_INC) -I$(ANDROID_INCLUDE) -c lua_cjson.c
+	@cd modules/lua-cjson && $(ANDROID_CC_AARCH64) --sysroot $(ANDROID_SYSROOT) -g -O2 -fPIC -I$(LUA_INC) -I$(ANDROID_INCLUDE) -c fpconv.c
+	@cd modules/lua-cjson && $(ANDROID_AR) rs lcjson.a *.o && $(ANDROID_RANLIB) lcjson.a
 	@cp -r modules/lua-cjson/lcjson.a build/arm64-v8a
 	@cd modules/lua-cjson && make clean
-	@cd modules/lua-cjson && $(ANDROID_CC_ARM) --sysroot $(ANDROID_SYSROOT) -g -O2 -fPIC -I$(LUA_INC) -I$(ANDROID_INCLUDE) -c strbuf.c -o strbuf.a
-	@cd modules/lua-cjson && $(ANDROID_CC_ARM) --sysroot $(ANDROID_SYSROOT) -g -O2 -fPIC -I$(LUA_INC) -I$(ANDROID_INCLUDE) -c lua_cjson.c -o lua_cjson.a
-	@cd modules/lua-cjson && $(ANDROID_CC_AARCH64) --sysroot $(ANDROID_SYSROOT) -g -O2 -fPIC -I$(LUA_INC) -I$(ANDROID_INCLUDE) -c fpconv.c -o fpconv.a
-	@cd modules/lua-cjson && $(ANDROID_AR) r lcjson.a *.a
+	@cd modules/lua-cjson && $(ANDROID_CC_ARM) --sysroot $(ANDROID_SYSROOT) -g -O2 -fPIC -I$(LUA_INC) -I$(ANDROID_INCLUDE) -c strbuf.c
+	@cd modules/lua-cjson && $(ANDROID_CC_ARM) --sysroot $(ANDROID_SYSROOT) -g -O2 -fPIC -I$(LUA_INC) -I$(ANDROID_INCLUDE) -c lua_cjson.c
+	@cd modules/lua-cjson && $(ANDROID_CC_ARM) --sysroot $(ANDROID_SYSROOT) -g -O2 -fPIC -I$(LUA_INC) -I$(ANDROID_INCLUDE) -c fpconv.c
+	@cd modules/lua-cjson && $(ANDROID_AR) rs lcjson.a *.o && $(ANDROID_RANLIB) lcjson.a
 	@cp -r modules/lua-cjson/lcjson.a build/armeabi-v7a
 
 nacl-ios:
