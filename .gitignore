@@ -6,3 +6,6 @@ tmp/
 zig-cache
 zig-out
 build/
+modules/zig/build
+zig
+zig-linux-*/

@@ -1,5 +1,3 @@
-# tested on mac
-
 NDK_VERSION?=25.2.9519653
 NDK_ROOT?=/Users/$(USER)/Library/Android/sdk/ndk/$(NDK_VERSION)
 ANDROID_TOOLCHAIN?=$(NDK_ROOT)/toolchains/llvm/prebuilt/darwin-x86_64
@@ -13,6 +11,9 @@ ANDROID_CC_AARCH64=${ANDROID_TOOLCHAIN}/bin/${ANDROID_TARGET_AARCH64}${ANDROID_A
 ANDROID_CC_ARM=${ANDROID_TOOLCHAIN}/bin/${ANDROID_TARGET_ARM}${ANDROID_API}-clang
 ANDROID_AR=${ANDROID_TOOLCHAIN}/bin/llvm-ar
 ANDROID_RANLIB=${ANDROID_TOOLCHAIN}/bin/llvm-ranlib
+
+ZIG?=$(shell pwd)/modules/zig/build/zig
+LUAC?=$(shell pwd)/modules/lua/src/luac
 ANDROID_CURL_INCLUDE=$(shell pwd)/modules/libcurl-android/jni/curl/include
 ANDROID_OPENSSL_INCLUDE=$(shell pwd)/modules/libcurl-android/jni/openssl/include
 
@@ -37,7 +38,7 @@ SQLCIPHER_CFLAGS_IOS_ONLY=-DSQLCIPHER_CRYPTO_CC
 
 LUA_INC=$(shell pwd)/modules/lua
 MODULES_INC=$(shell pwd)/modules
-TEST=xcrun 
+TEST=xcrun
 
 .PHONY: lua-ios lua-android lcurl-ios lcurl-android sqlite-ios sqlite-android sqlcipher-ios lsqlite3-ios lsqlite3-android sqlcipher-android libstart-ios libstart-android deps curl-cacert build-dir info nacl-android nacl-ios
 
@@ -80,13 +81,13 @@ lcurl-android: build-dir
 sqlite-ios: build-dir
 	@cd modules/sqlite && $(IOS_CC) -O2 -Wall -Wextra -c sqlite3.c -o libsqlite3.a
 	@cp -r modules/sqlite/libsqlite3.a build/aarch64-ios
-	@cd modules/sqlite && $(IOS_SIM_CC) -O2 -Wall -Wextra -c sqlite3.c -o libsqlite3.a 
+	@cd modules/sqlite && $(IOS_SIM_CC) -O2 -Wall -Wextra -c sqlite3.c -o libsqlite3.a
 	@cp -r modules/sqlite/libsqlite3.a build/aarch64-ios-simulator
 
 sqlite-android: build-dir
-	@cd modules/sqlite && $(ANDROID_CC_AARCH64) --sysroot $(ANDROID_SYSROOT) -target $(ANDROID_TARGET_AARCH64) -g -O2 -DSQLITE_OS_UNIX=1 -DHAVE_READLINE=0 -fPIC -c sqlite3.c -o libsqlite3.a 
+	@cd modules/sqlite && $(ANDROID_CC_AARCH64) --sysroot $(ANDROID_SYSROOT) -target $(ANDROID_TARGET_AARCH64) -g -O2 -DSQLITE_OS_UNIX=1 -DHAVE_READLINE=0 -fPIC -c sqlite3.c -o libsqlite3.a
 	@cp -r modules/sqlite/libsqlite3.a build/arm64-v8a
-	@cd modules/sqlite && $(ANDROID_CC_ARM) --sysroot $(ANDROID_SYSROOT) -target $(ANDROID_TARGET_ARM) -g -O2 -DSQLITE_OS_UNIX=1 -DHAVE_READLINE=0 -fPIC -c sqlite3.c -o libsqlite3.a 
+	@cd modules/sqlite && $(ANDROID_CC_ARM) --sysroot $(ANDROID_SYSROOT) -target $(ANDROID_TARGET_ARM) -g -O2 -DSQLITE_OS_UNIX=1 -DHAVE_READLINE=0 -fPIC -c sqlite3.c -o libsqlite3.a
 	@cp -r modules/sqlite/libsqlite3.a build/armeabi-v7a
 
 sqlcipher-ios: build-dir
@@ -102,15 +103,15 @@ lsqlite3-ios: build-dir
 	@cp -r modules/lsqlite3_fsl09y/lsqlite3.a build/aarch64-ios-simulator
 
 lsqlite3-android: build-dir
-	@cd modules/lsqlite3_fsl09y && $(ANDROID_CC_AARCH64) -g -O2 -DSQLITE_OS_UNIX=1 -DHAVE_READLINE=0 -fPIC -I$(LUA_INC) -I$(ANDROID_INCLUDE) -c lsqlite3.c -o lsqlite3.a 
+	@cd modules/lsqlite3_fsl09y && $(ANDROID_CC_AARCH64) -g -O2 -DSQLITE_OS_UNIX=1 -DHAVE_READLINE=0 -fPIC -I$(LUA_INC) -I$(ANDROID_INCLUDE) -c lsqlite3.c -o lsqlite3.a
 	@cp -r modules/lsqlite3_fsl09y/lsqlite3.a build/arm64-v8a
-	@cd modules/lsqlite3_fsl09y && $(ANDROID_CC_AARCH64) -g -O2 -DSQLITE_OS_UNIX=1 -DHAVE_READLINE=0 -fPIC -I$(LUA_INC) -I$(ANDROID_INCLUDE) -c lsqlite3.c -o lsqlite3.a 
+	@cd modules/lsqlite3_fsl09y && $(ANDROID_CC_AARCH64) -g -O2 -DSQLITE_OS_UNIX=1 -DHAVE_READLINE=0 -fPIC -I$(LUA_INC) -I$(ANDROID_INCLUDE) -c lsqlite3.c -o lsqlite3.a
 	@cp -r modules/lsqlite3_fsl09y/lsqlite3.a build/armeabi-v7a
 
 sqlcipher-android: build-dir
-	@cd modules/sqlcipher && $(ANDROID_CC_AARCH64) --sysroot $(ANDROID_SYSROOT) -g -O2 $(SQLCIPHER_CFLAGS) -fPIC -I$(LUA_INC) -I$(ANDROID_INCLUDE) -I$(ANDROID_OPENSSL_INCLUDE) -c sqlite3.c -o sqlcipher.a 
+	@cd modules/sqlcipher && $(ANDROID_CC_AARCH64) --sysroot $(ANDROID_SYSROOT) -g -O2 $(SQLCIPHER_CFLAGS) -fPIC -I$(LUA_INC) -I$(ANDROID_INCLUDE) -I$(ANDROID_OPENSSL_INCLUDE) -c sqlite3.c -o sqlcipher.a
 	@cp -r modules/sqlcipher/sqlcipher.a build/arm64-v8a
-	@cd modules/sqlcipher && $(ANDROID_CC_ARM) --sysroot $(ANDROID_SYSROOT) -g -O2 $(SQLCIPHER_CFLAGS) -fPIC -I$(LUA_INC) -I$(ANDROID_INCLUDE) -I$(ANDROID_OPENSSL_INCLUDE) -c sqlite3.c -o sqlcipher.a 
+	@cd modules/sqlcipher && $(ANDROID_CC_ARM) --sysroot $(ANDROID_SYSROOT) -g -O2 $(SQLCIPHER_CFLAGS) -fPIC -I$(LUA_INC) -I$(ANDROID_INCLUDE) -I$(ANDROID_OPENSSL_INCLUDE) -c sqlite3.c -o sqlcipher.a
 	@cp -r modules/sqlcipher/sqlcipher.a build/armeabi-v7a
 
 cjson-ios:
@@ -124,7 +125,7 @@ cjson-ios:
 	@cd modules/lua-cjson && zig cc -target aarch64-ios-simulator --sysroot $(IOS_SIM_SDK_PATH) -I$(LUA_INC) -I$(IOS_INC) -O2 -Wall -Wextra -c -o fpconv.a fpconv.c
 	@cd modules/lua-cjson && libtool -static -o lcjson.a strbuf.a lua_cjson.a fpconv.a
 	@cp -r modules/lua-cjson/lcjson.a build/aarch64-ios-simulator
-	
+
 
 cjson-android:
 	@cd modules/lua-cjson && make clean && rm -rf lcjson.a
@@ -151,7 +152,7 @@ nacl-ios:
 	@cd modules/luatweetnacl && zig cc -target aarch64-ios-simulator --sysroot $(IOS_SIM_SDK_PATH) -I$(LUA_INC) -I$(IOS_INC) -O2 -Wall -Wextra -c -o luatweetnacl.a luatweetnacl.c
 	@cd modules/luatweetnacl && libtool -static -o lnacl.a randombytes.a tweetnacl.a luatweetnacl.a
 	@cp -r modules/luatweetnacl/lnacl.a build/aarch64-ios-simulator
-	
+
 nacl-android:
 	@cd modules/luatweetnacl && make clean
 	@cd modules/luatweetnacl && $(ANDROID_CC_AARCH64) --sysroot $(ANDROID_SYSROOT) -g -O2 -fPIC -I$(LUA_INC) -I$(ANDROID_INCLUDE) -c tweetnacl.c -o tweetnacl.a
@@ -173,7 +174,7 @@ libstart-ios: build-dir
 	@cp -r libstart.a build/aarch64-ios-simulator
 
 libstart-android: build-dir
-	@zig build-lib start.zig -femit-h -I$(MODULES_INC) -I$(LUA_INC) --sysroot $(ANDROID_SYSROOT) -I$(ANDROID_INCLUDE) -I$(ANDROID_INCLUDE)/aarch64-linux-android -target aarch64-linux-android 
+	@zig build-lib start.zig -femit-h -I$(MODULES_INC) -I$(LUA_INC) --sysroot $(ANDROID_SYSROOT) -I$(ANDROID_INCLUDE) -I$(ANDROID_INCLUDE)/aarch64-linux-android -target aarch64-linux-android
 	@cp -r libstart.a build/arm64-v8a
 # 	@zig build-lib start.zig -femit-h -I$(MODULES_INC) -I$(LUA_INC) --sysroot $(ANDROID_SYSROOT) -I$(ANDROID_INCLUDE) -I$(ANDROID_INCLUDE)/arm-linux-androideabi -target arm-linux-android
 # 	@cp -r libstart.a build/armeabi-v7a
@@ -203,7 +204,7 @@ curl-cacert:
 	@wget https://curl.se/ca/cacert.pem -O modules/cacert.pem
 
 build-dir:
-	@mkdir -p build/aarch64-macos 
+	@mkdir -p build/aarch64-macos
 	@mkdir -p build/aarch64-ios
 	@mkdir -p build/aarch64-ios-simulator
 	@mkdir -p build/arm64-v8a
@@ -226,4 +227,4 @@ info:
 
 clean:
 	rm -rf build zig-cache zig-out
-	@cd modules/lua && make clean 
+	@cd modules/lua && make clean

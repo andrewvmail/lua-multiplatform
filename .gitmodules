@@ -22,3 +22,6 @@
 [submodule "modules/luatweetnacl"]
 	path = modules/luatweetnacl
 	url = https://github.com/philanc/luatweetnacl
+[submodule "modules/zig"]
+	path = modules/zig
+	url = https://github.com/ziglang/zig.git

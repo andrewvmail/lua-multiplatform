@@ -1,0 +1,52 @@
+name: Build Bundles
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: Install tools
+        run: |
+          brew update
+          brew install gnu-sed cmake ninja
+
+      - name: Build Zig
+        run: |
+          cd modules/zig
+          git submodule update --init --recursive
+          cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+          cmake --build build -j$(sysctl -n hw.logicalcpu)
+
+      - name: Build Lua tools
+        run: |
+          cd modules/lua
+          make clean && make luac
+
+      - name: Build Android
+        run: |
+          modules/lua/src/luac -o main.lua.bytecode main.lua
+          ZIG=modules/zig/build/zig make all-android
+
+      - name: Build iOS
+        run: |
+          modules/lua/src/luac -o main.lua.bytecode main.lua
+          ZIG=modules/zig/build/zig make all-ios
+          make xcf
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: android-libs
+          path: build/arm*
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: ios-xcframework
+          path: build/liblm.xcframework
