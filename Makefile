@@ -1,6 +1,9 @@
-NDK_VERSION?=25.2.9519653
-NDK_ROOT?=/Users/$(USER)/Library/Android/sdk/ndk/$(NDK_VERSION)
-ANDROID_TOOLCHAIN?=$(NDK_ROOT)/toolchains/llvm/prebuilt/darwin-x86_64
+# Default to the latest NDK installed by the Debian packages
+NDK_VERSION?=26.2.11394342
+# Path where the android-ndk package installs the NDK
+NDK_ROOT?=/usr/lib/android-sdk/ndk/$(NDK_VERSION)
+# Linux toolchain location
+ANDROID_TOOLCHAIN?=$(NDK_ROOT)/toolchains/llvm/prebuilt/linux-x86_64
 ANDROID_SYSROOT?=$(ANDROID_TOOLCHAIN)/sysroot
 ANDROID_INCLUDE?=$(ANDROID_SYSROOT)/usr/include
 ANDROID_TARGET_AARCH64=aarch64-linux-android
@@ -214,7 +217,8 @@ build-dir:
 info:
 	@echo "==="
 	@echo ANDROID_TOOLCHAIN: $(ANDROID_TOOLCHAIN)
-	@echo ANDROID_TARGET: $(ANDROID_TARGET)
+	@echo ANDROID_TARGET_AARCH64: $(ANDROID_TARGET_AARCH64)
+	@echo ANDROID_TARGET_ARM: $(ANDROID_TARGET_ARM)
 	@echo ANDROID_API: $(ANDROID_API)
 	@echo ANDROID_CC_AARCH64: $(ANDROID_CC_AARCH64)
 	@echo ANDROID_AR: $(ANDROID_AR)
@@ -224,6 +228,11 @@ info:
 	@echo IOS_SDK_PATH: $(IOS_SDK_PATH)
 	@echo "==="
 	@echo MAKE_FILE_LIST: $(LUA_INC)
+
+check-android-toolchain:
+	@echo "Checking Android toolchain"
+	@echo NDK_ROOT: $(NDK_ROOT)
+	@$(ANDROID_CC_AARCH64) --version | head -n 1
 
 clean:
 	rm -rf build zig-cache zig-out
