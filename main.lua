@@ -5,23 +5,24 @@ print("[ main.lua ] app_resource: " .. _G.APP_RESOURCE_PATH)
 local curl = require('lcurl')
 print("[ main.lua ] after require curl")
 
-local vi = curl.version_info()
-print("[ curl ] version: " .. vi.version)
-print("[ curl ] host: " .. vi.host)
-print("[ curl ] ssl: " .. vi.ssl_version)
-print("[ curl ] libz: " .. vi.libz_version)
+local version_info = curl.version_info()
+print("[ curl ] version: " .. version_info.version)
+print("[ curl ] host: " .. version_info.host)
+print("[ curl ] ssl: " .. version_info.ssl_version)
+print("[ curl ] libz: " .. version_info.libz_version)
 local protocols = {}
-for k, v in pairs(vi.protocols) do
+for k, v in pairs(version_info.protocols) do
   if v then table.insert(protocols, k) end
 end
 table.sort(protocols)
 print("[ curl ] protocols: " .. table.concat(protocols, ', '))
 
-local feat = {}
-for k, v in pairs(vi.features) do
-  if v then table.insert(feat, k) end
+local features = {}
+for k, v in pairs(version_info.features) do
+  if v then table.insert(features, k) end
 end
-print("[ curl ] features: " .. table.concat(feat, ', '))
+table.sort(features)
+print("[ curl ] features: " .. table.concat(features, ', '))
 
 local response = {}
 curl.easy{
@@ -29,19 +30,19 @@ curl.easy{
   writefunction = function(s) table.insert(response, s) end,
   [curl.OPT_CAINFO] = _G.APP_RESOURCE_PATH .. '/cacert.pem'
 }:perform():close()
-print('[ curl ] response body:', table.concat(response))
+print('[ curl ] response body: ' .. table.concat(response))
 
 local fpath = _G.USER_DATA_PATH .. '/test.txt'
-local f = assert(io.open(fpath, 'w'))
-f:write('Hello World')
-f:close()
+local output_file = assert(io.open(fpath, 'w'))
+output_file:write('Hello World')
+output_file:close()
 print(fpath .. ' written')
 
 local sqlite3 = require('lsqlite3')
 print("[ main.lua ] after require sqlite3")
 
 local db_path = _G.USER_DATA_PATH .. '/test.db'
-print(db_path)
+print('[ main.lua ] db_path: ' .. db_path)
 local db = sqlite3.open(db_path)
 db:exec("PRAGMA key = 'test';")
 db:exec[[
